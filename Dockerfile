@@ -48,7 +48,13 @@ COPY ./docker/supervisor/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Install Composer dependencies (ignore platform requirements for PHP 8.2 compatibility)
-RUN composer update --prefer-dist --no-dev --optimize-autoloader --ignore-platform-reqs
+RUN composer update --prefer-dist --optimize-autoloader --ignore-platform-reqs
+
+# Ensure facade/ignition is installed for development
+RUN composer require facade/ignition --dev --ignore-platform-reqs
+
+# Clear all Laravel caches and regenerate
+RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear
 
 # Install Node.js dependencies and run npm scripts
 RUN npm install
