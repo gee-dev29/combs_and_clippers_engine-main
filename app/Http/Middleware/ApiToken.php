@@ -19,7 +19,7 @@ class ApiToken
     //return is_null($request['appid'];
     if (!is_null($request->header('appid')) && !is_null($request->header('Token'))) {
       $app = ApiToken::where([['app_id', $request->header('appid')], ['token', $request->header('Token')]])->first();
-      if (!is_null($app)) {
+      if (!is_null($app)) { 
         return $next($request);
       } else {
         return response()->json([
