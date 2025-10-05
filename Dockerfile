@@ -47,11 +47,8 @@ COPY . .
 COPY ./docker/supervisor/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Install Composer dependencies
-RUN composer install --prefer-dist
-
-# Generate autoloader
-RUN composer dump-autoload --optimize
+# Install Composer dependencies (ignore platform requirements for PHP 8.2 compatibility)
+RUN composer update --prefer-dist --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Install Node.js dependencies and run npm scripts
 RUN npm install
