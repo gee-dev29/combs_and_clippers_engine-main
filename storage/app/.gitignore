@@ -1,0 +1,4 @@
+*
+!public/
+!.gitignore
+.DS_Store

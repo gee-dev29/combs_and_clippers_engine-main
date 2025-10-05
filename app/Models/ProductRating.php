@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ProductRating extends Model
+{
+    protected $fillable = ['user_id', 'product_id', 'rating', 'title', 'description'];
+    protected $table = 'product_ratings';
+
+    public function rater()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+}

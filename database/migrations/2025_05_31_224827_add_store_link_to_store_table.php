@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class AddStoreLinkToStoreTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::table('stores', function (Blueprint $table) {
+          
+            if (!Schema::hasColumn('stores', 'store_link')) {
+                $table->string('store_link')->nullable()->after('store_name');
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::table('stores', function (Blueprint $table) {
+          
+            if (Schema::hasColumn('stores', 'store_link')) {
+                $table->dropColumn('store_link');
+            }
+        });
+    }
+}
