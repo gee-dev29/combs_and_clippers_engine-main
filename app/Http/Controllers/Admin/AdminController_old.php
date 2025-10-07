@@ -123,10 +123,7 @@ class AdminController extends Controller
 
         // Get statistics
         $totalAdmins = Admin::count();
-        $recentLogins = DB::table('authentication_log')
-            ->where('authenticatable_type', 'App\\Models\\Admin')
-            ->where('login_at', '>=', Carbon::now()->subWeek())
-            ->count();
+        $recentLogins = 0; // Authentication logging removed
 
         // Account types
         $accountTypes = Admin::distinct('accounttype')->pluck('accounttype')->toArray();
