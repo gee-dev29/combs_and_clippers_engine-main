@@ -1,5 +1,5 @@
-# Use an official PHP 8.2 image as the base
-FROM php:8.2-fpm
+# Use an official PHP 8.3 image as the base
+FROM php:8.3-fpm
 
 # Set the working directory to /var/www
 WORKDIR /var/www
@@ -22,7 +22,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     supervisor \
-    nginx
+    nginx \
+    netcat-openbsd
 
 # Install Node.js and npm
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
@@ -47,11 +48,8 @@ COPY . .
 COPY ./docker/supervisor/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Install Composer dependencies (ignore platform requirements for PHP 8.2 compatibility)
-RUN composer update --prefer-dist --optimize-autoloader --ignore-platform-reqs
-
-# Ensure facade/ignition is installed for development
-RUN composer require facade/ignition --dev --ignore-platform-reqs
+# Install Composer dependencies
+RUN composer install --prefer-dist --optimize-autoloader --ignore-platform-reqs
 
 # Clear all Laravel caches and regenerate
 RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear
