@@ -7,69 +7,47 @@
     <title></title>
 </head>
 
-<body style="background-color: #F9FAFB; height: 100%; width: 100%; padding: 2%; font-family: sans-serif;">
-    <header style="width: 90%; background-color: #ffffff; display: flex; padding: 5%;">
-        <div>
-            <!-- {{env("APP_NAME")}} logo -->
-            <a href="{{ cc('frontend_base_url') }}" style="text-decoration: none;">
-                <img src="{{ asset('img/logo.png') }}" alt="logo" style="height: 32px; width: 70px;">
-            </a>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-left: auto;">
-            <!-- login link -->
-            <a href="{{ cc('login_url') }}" style="text-decoration: none; color: #000000;">Log in</a>
-            &emsp;
-            <!-- social media link -->
-            <a href="{{ cc('twitter') }}" style="text-decoration: none; color: #000000;">
-                <img src="{{ asset('img/twitter.png') }}" alt="twitter" style="height: 20px; width: 20px;">
-            </a>
-            &emsp;
-            {{-- <span style="margin-right: 20px">
-                <a href="#" style="text-decoration: none; color: #000000;">
-                    <img src="{{ asset('img/facebook.png') }}" alt="facebook" style="height: 20px; width: 20px;">
-                </a>
-            </span> --}}
-            <a href="{{ cc('instagram') }}" style="text-decoration: none; color: #000000;">
-                <img src="{{ asset('img/instagram.png') }}" alt="instagram" style="height: 20px; width: 20px;">
-            </a>
-        </div>
-    </header>
-    @yield('content')
-    <footer style="padding: 5px; background-color: #FFFFFF; padding: 2%; width: 90%;">
-        <div>
-            <!-- user email address, unsubscribe from email link and manage email preferences link -->
-            @yield('footer')
+<body style="margin:0; padding:0; background:#0E0E0E; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#0E0E0E;">
+        <tr>
+            <td align="center" style="padding: 32px 16px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px; max-width:100%; background:#1A1A1A; color:#EAEAEA; border-radius:8px; overflow:hidden;">
+                    <tr>
+                        <td align="center" style="padding: 24px 24px 16px 24px; border-top: 4px solid #C8A94D;">
+                            <a href="{{ cc('frontend_base_url') }}" style="text-decoration:none;">
+                                <img src="{{ asset('img/logo.png') }}" alt="{{ env('APP_NAME') }}" style="display:block; height:40px;">
+                            </a>
+                        </td>
+                    </tr>
 
-            <p style="font-size: 14px; font-weight: 400; color: #667085;">
-                © {{ date("Y") }} {{env("APP_NAME")}}
-            </p>
-        </div>
-        <div style="width: 100%; display: flex; margin-top: 50px;">
-            <div>
-                <!-- {{env("APP_NAME")}} logo -->
-                <a href="{{ cc('frontend_base_url') }}" style="text-decoration: none;">
-                    <img src="{{ asset('img/logo.png') }}" alt="logo" style="height: 32px; width: 70px;">
-                </a>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-left: auto;">
-                <!-- social media link -->
-                <a href="{{ cc('twitter') }}" style="text-decoration: none; color: #000000;">
-                    <img src="{{ asset('img/twitter-grey.png') }}" alt="twitter" style="height: 20px; width: 20px;">
-                </a>
-                &emsp;
-                {{-- <span style="margin-inline: 20px;">
-                    <a href="#" style="text-decoration: none; color: #000000;">
-                        <img src="{{ asset('img/facebook-grey.png') }}" alt="facebook"
-                            style="height: 20px; width: 20px;">
-                    </a>
-                </span> --}}
-                <a href="{{ cc('instagram') }}" style="text-decoration: none; color: #000000;">
-                    <img src="{{ asset('img/instagram-grey.png') }}" alt="instagram"
-                        style="height: 20px; width: 20px;">
-                </a>
-            </div>
-        </div>
-    </footer>
+                    <tr>
+                        <td style="padding: 0 24px 24px 24px;">
+    @yield('content')
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 0 24px 24px 24px;">
+            @yield('footer')
+                            <p style="margin:16px 0 0 0; font-size:12px; line-height:18px; color:#9CA3AF;">© {{ date('Y') }} {{ env('APP_NAME') }}. All rights reserved.</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px; max-width:100%; margin-top:16px;">
+                    <tr>
+                        <td align="center" style="padding: 8px 24px;">
+                            <a href="{{ cc('help_center') }}" style="color:#EAEAEA; text-decoration:none; font-size:12px;">Help Center</a>
+                            <span style="color:#4B5563; font-size:12px;"> • </span>
+                            <a href="{{ cc('frontend_base_url') }}" style="color:#EAEAEA; text-decoration:none; font-size:12px;">Website</a>
+                            <span style="color:#4B5563; font-size:12px;"> • </span>
+                            <a href="{{ cc('faqs') }}" style="color:#EAEAEA; text-decoration:none; font-size:12px;">FAQs</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>
