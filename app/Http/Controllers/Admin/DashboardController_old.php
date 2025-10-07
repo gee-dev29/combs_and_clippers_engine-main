@@ -40,7 +40,7 @@ use App\Jobs\SendBulkSMSToPhoneNumbers;
 use Bmatovu\MtnMomo\Products\Collection;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
-use Propaganistas\LaravelPhone\Rules\Phone;
+// use Propaganistas\LaravelPhone\Rules\Phone; // Package removed
 
 
 
