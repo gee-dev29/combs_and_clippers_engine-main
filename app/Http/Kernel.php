@@ -80,7 +80,7 @@ class Kernel extends HttpKernel
         'AuthToken' => \App\Http\Middleware\AuthToken::class,
         'ApiToken' => \App\Http\Middleware\ApiToken::class,
         'ThirdPartyToken' => \App\Http\Middleware\ThirdPartyToken::class,
-        '2fa' => \PragmaRX\Google2FALaravel\MiddlewareStateless::class,
+        // '2fa' => \PragmaRX\Google2FALaravel\MiddlewareStateless::class, // Package removed
         'cors' => \App\Http\Middleware\Cors::class,
         'check.panel.role' => \App\Http\Middleware\CheckPanelRole::class,
         'seller' => IsSeller::class,
