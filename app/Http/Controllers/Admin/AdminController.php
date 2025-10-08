@@ -303,6 +303,8 @@ class AdminController extends Controller
         }
 
         // Change Password
+        
+        /**@var Admin */
         $user = Auth::guard('admin')->user();
         $user->password = Hash::make($request->password);
         $user->save();
