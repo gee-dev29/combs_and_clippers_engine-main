@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\UserResource;
 use Bmatovu\MtnMomo\Products\Collection;
 use Illuminate\Support\Facades\Validator;
-use Propaganistas\LaravelPhone\Rules\Phone;
+// use Propaganistas\LaravelPhone\Rules\Phone; // Package removed
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log as Logger;
 
@@ -59,7 +59,7 @@ class AccountController extends Controller
     $validator = Validator::make($request->all(), [
       'name' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z]+(?:\s[a-zA-Z]+)+$/'],
       'bio' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z]+(?:\s[a-zA-Z]+)+$/'],
-      'phone' => ['nullable', (new Phone)->country('NG'), Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
+      'phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]+$/', Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
       'email' => ['nullable', 'email', Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
       'profile_image' => 'nullable|mimes:jpeg,jpg,png,gif,bmp|max:5120',
     ]);
@@ -118,7 +118,7 @@ public function updateProfileInfo(Request $request)
     $validator = Validator::make($request->all(), [
         'name' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z]+(?:\s[a-zA-Z]+)+$/'],
         'bio' => ['nullable', 'string', 'max:255'],
-        'phone' => ['nullable', (new Phone)->country('NG'), Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
+        'phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]+$/', Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
         'email' => ['nullable', 'email', Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
         'profile_image' => 'nullable|mimes:jpeg,jpg,png,gif,bmp|max:5120',
         'store_name' => 'nullable|string|max:255',
