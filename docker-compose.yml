@@ -12,8 +12,19 @@ services:
     restart: unless-stopped
     depends_on:
       - mysql
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_URL: http://localhost
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: combs_and_clippers
+      DB_USERNAME: root
+      DB_PASSWORD: root
     volumes:
-      - ./:/var/www
+      - ./storage:/var/www/storage
+      - ./bootstrap/cache:/var/www/bootstrap/cache
       - ./docker/php/local.ini:/usr/local/etc/php/confd/local.ini:rw
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:rw
       - combs_and_clippers_vendor:/var/www/vendor
