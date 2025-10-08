@@ -605,7 +605,7 @@ class DashboardController_old extends Controller
             'store_name' => 'required|string',
             'store_category' => 'required|integer',
             'email' => 'required|email|unique:users',
-            'phone' => ['required', 'numeric', (new Phone)->country('GB')],
+            'phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]+$/'],
             'acct_type' => 'required|string',
         ]);
 
