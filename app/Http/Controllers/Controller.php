@@ -124,6 +124,34 @@ class Controller extends BaseController
      */
     protected $notifyUtils;
 
+    /**
+     * The pagination per page limit.
+     *
+     * @var int
+     */
+    protected $perPage;
+
+    /**
+     * The payment provider.
+     *
+     * @var string
+     */
+    protected $payment_provider;
+
+    /**
+     * The country code.
+     *
+     * @var string
+     */
+    protected $country;
+
+    /**
+     * The currency code.
+     *
+     * @var string
+     */
+    protected $currency;
+
     public function __construct(ImageUtils $imageUtil, VFDUtils $vfdUtil, ShiipUtils $shiipUtils, WhatsappMessenger $messenger, MomoUtils $momoUtils, Mailer $mailer, SendyUtils $sendyUtils, StripeUtils $stripeUtils, PaystackUtils $paystackUtils, NotificationUtils $notifyUtils)
     {
         $this->perPage = 12;
