@@ -49,7 +49,7 @@ COPY ./docker/supervisor/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Install Composer dependencies
-RUN composer install --prefer-dist --optimize-autoloader --ignore-platform-reqs
+RUN composer update --prefer-dist --optimize-autoloader --ignore-platform-reqs
 
 # Clear all Laravel caches and regenerate
 RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear
