@@ -11,9 +11,13 @@ while ! nc -z mysql 3306; do
 done
 
 echo "Database is ready, running migrations..."
-php artisan migrate --force
-php artisan optimize:clear
-php artisan optimize
+php artisan config:clear || true
+php artisan cache:clear || true
+php artisan route:clear || true
+php artisan view:clear || true
+php artisan migrate --force || true
+php artisan optimize:clear || true
+php artisan optimize || true
 # npm run production
 
 exec supervisord -n -c /etc/supervisor/conf.d/supervisor.conf
