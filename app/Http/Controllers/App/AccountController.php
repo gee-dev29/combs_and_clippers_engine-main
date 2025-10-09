@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\UserResource;
 use Bmatovu\MtnMomo\Products\Collection;
 use Illuminate\Support\Facades\Validator;
-// use Propaganistas\LaravelPhone\Rules\Phone; // Package removed
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log as Logger;
 
@@ -36,6 +35,7 @@ class AccountController extends Controller
   public function getProfileInfo(Request $request)
   {
     $customerID = $this->getAuthID($request);
+    /** @var User|null */
     $customer = User::find($customerID);
  
     if (!is_null($customer)) {
