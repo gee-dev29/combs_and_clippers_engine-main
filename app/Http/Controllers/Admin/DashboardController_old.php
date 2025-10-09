@@ -40,7 +40,6 @@ use App\Jobs\SendBulkSMSToPhoneNumbers;
 use Bmatovu\MtnMomo\Products\Collection;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
-// use Propaganistas\LaravelPhone\Rules\Phone; // Package removed
 
 
 
@@ -614,6 +613,7 @@ class DashboardController_old extends Controller
             $name = $request->input('name');
             $password = generatePassword();
             $name_arr = explode(" ", $name);
+            /** @var User */
             $user = User::create([
                 'name' => $name,
                 'firstName' => isset($name_arr[0]) ? $name_arr[0] : null,
@@ -640,6 +640,7 @@ class DashboardController_old extends Controller
                 }
             }
 
+            /** @var Wallet */
             $wallet = new Wallet;
             $wallet->amount = 0;
             $wallet->save();
@@ -650,6 +651,7 @@ class DashboardController_old extends Controller
             $store_name = $request->store_name;
             $store_category = $request->store_category;
 
+            /** @var Store */
             $store = new Store;
             $store->merchant_id = $user->id;
             $store->store_name = $store_name;
