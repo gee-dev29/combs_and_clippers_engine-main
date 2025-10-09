@@ -43,16 +43,13 @@ use App\Models\UserGrowServiceProgress;
 use App\Repositories\WhatsappMessenger;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
-use Illuminate\Foundation\Bus\DispatchesJobs;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Controller extends BaseController
 {
-    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+    // Deprecated traits removed - they're now built into the base controller in Laravel 11
 
     /**
      * The SendyUtils instance.
