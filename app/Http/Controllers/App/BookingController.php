@@ -138,6 +138,7 @@ class BookingController extends Controller
 
             DB::beginTransaction();
 
+            /** @var Appointment */
             $appointment = Appointment::create([
                 "customer_id" => $userId,
                 "merchant_id" => $merchantId,
@@ -290,6 +291,7 @@ class BookingController extends Controller
         }
 
         try {
+            /** @var User */
             $client = User::firstOrCreate(
                 ['email' => $request->email],
                 [
@@ -396,6 +398,7 @@ class BookingController extends Controller
 
             DB::beginTransaction();
 
+            /** @var Appointment */
             $appointment = Appointment::create([
                 "customer_id" => $userId,
                 "merchant_id" => $merchantId,
