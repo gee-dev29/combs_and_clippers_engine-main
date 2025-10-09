@@ -33,6 +33,7 @@ class AppointmentController extends Controller
                     'name' => $validatedData['name'],
                 ];
 
+                /** @var User|null */
                 $user = User::where('email', $validatedData['email'])
                     ->orWhere('phone', $validatedData['phone'])
                     ->first();
@@ -42,10 +43,12 @@ class AppointmentController extends Controller
                 }
 
                 $userId = $this->getAuthID($request);
+                /** @var User|null */
                 $merchantId = User::find($userId)->id;
                 $clientId = $user->id;
 
                 foreach ($request->services as $service) {
+                    /** @var Service|null */
                     $serviceData = Service::find($service['id']);
                     $totalCost += $serviceData->price * $service['quantity'];
                 }
