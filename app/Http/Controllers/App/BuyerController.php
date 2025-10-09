@@ -11,7 +11,6 @@ use App\Models\BillingAddress;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AddressResource;
 use Illuminate\Support\Facades\Validator;
-// use Propaganistas\LaravelPhone\Rules\Phone; // Package removed
 use App\Http\Resources\BillingAddressResource;
 
 class BuyerController extends Controller
