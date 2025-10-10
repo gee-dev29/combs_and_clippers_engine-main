@@ -288,7 +288,7 @@ class AdminController extends Controller
      */
     public function passwordUpdate(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'current_password' => 'required|string',
             'password' => 'required|min:8|confirmed|string',
             'password_confirmation' => 'required|string|min:8',
