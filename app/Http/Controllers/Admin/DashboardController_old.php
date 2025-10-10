@@ -155,7 +155,7 @@ class DashboardController_old extends Controller
 
     public function transactionFilter(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'date' => 'required'
         ]);
         $date = explode(' to ', $request->date);
@@ -383,7 +383,7 @@ class DashboardController_old extends Controller
 
     public function customers(Request $request, $type)
     {
-        $this->validate($request, [
+        $request->validate([
             //'date' => 'required_if:action,filter'
         ]);
 
@@ -475,7 +475,7 @@ class DashboardController_old extends Controller
 
     public function sendNewsletter(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'user_group' => 'required|string',
             'message' => 'required|string',
             'phones' => 'required_if:user_group,custom'
@@ -531,7 +531,7 @@ class DashboardController_old extends Controller
 
     public function getUserGroup(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'selectedUserGroup' => 'required|string'
         ]);
         try {
@@ -584,7 +584,7 @@ class DashboardController_old extends Controller
 
     public function addBulkCustomer(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'bulk' => 'required',
         ]);
         try {
@@ -599,7 +599,7 @@ class DashboardController_old extends Controller
 
     public function addCustomer(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required|string',
             'store_name' => 'required|string',
             'store_category' => 'required|integer',
@@ -764,7 +764,7 @@ class DashboardController_old extends Controller
 
     public function subscriptions(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             //'date' => 'required_if:action,filter'
         ]);
 
@@ -818,7 +818,7 @@ class DashboardController_old extends Controller
 
     public function refundBuyer(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'orderID' => 'integer|required',
             'dispute_referenceid' => 'required|string',
         ]);
@@ -859,7 +859,7 @@ class DashboardController_old extends Controller
 
     public function replaceOrder(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'orderID' => 'integer|required',
             'dispute_referenceid' => 'required|string',
         ]);
@@ -907,7 +907,7 @@ class DashboardController_old extends Controller
 
     public function cancelOrder(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'orderID' => 'required|integer',
             'reason' => 'required|string|max:255',
         ]);
@@ -960,7 +960,7 @@ class DashboardController_old extends Controller
 
     public function trackOrder(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'orderID' => 'required|integer'
         ]);
 
@@ -994,7 +994,7 @@ class DashboardController_old extends Controller
 
     public function requestDelivery(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'orderID' => 'required|integer'
         ]);
 
@@ -1026,7 +1026,7 @@ class DashboardController_old extends Controller
 
     public function requestPickup(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'orderID' => 'required|integer'
         ]);
 
@@ -1058,7 +1058,7 @@ class DashboardController_old extends Controller
 
     public function markAsDelivered(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'orderID' => 'required|integer'
         ]);
 
@@ -1124,7 +1124,7 @@ class DashboardController_old extends Controller
 
     public function addProduct(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'merchantID' => 'required|integer',
             'productname' => 'required|string|max:255|regex:/^[a-zA-Z]+[\w\s-]*$/',
             'description' => 'required|string',
@@ -1209,7 +1209,7 @@ class DashboardController_old extends Controller
 
     public function updateProduct(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'productID' => 'required|integer',
             'merchantID' => 'required|integer',
             'productname' => 'required|string|max:255|regex:/^[a-zA-Z]+[\w\s-]*$/',
@@ -1361,7 +1361,7 @@ class DashboardController_old extends Controller
 
     public function deleteProduct(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'productID' => 'required|integer'
         ]);
         try {
@@ -1399,7 +1399,7 @@ class DashboardController_old extends Controller
 
     public function addPickupAddress(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'merchantID' => 'required|integer',
             'street' => 'required|string',
             'city' => 'required|string',
@@ -1454,7 +1454,7 @@ class DashboardController_old extends Controller
 
     public function addStoreAddress(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'merchantID' => 'required|integer',
             'street' => 'required|string',
             'city' => 'required|string',
@@ -1562,7 +1562,7 @@ class DashboardController_old extends Controller
 
     public function addDiscount(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'merchantID' => 'required|integer',
             'discount_name' => 'required|string|max:255',
             'discount_type' => 'required|string|in:F,P',
@@ -1607,7 +1607,7 @@ class DashboardController_old extends Controller
 
     public function updateDiscount(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'merchantID' => 'required|integer',
             'discountID' => 'required|integer',
             'discount_name' => 'required|string|max:255',
@@ -1655,7 +1655,7 @@ class DashboardController_old extends Controller
 
     public function removeDiscount(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'discountID' => 'required|integer'
         ]);
 
@@ -1686,7 +1686,7 @@ class DashboardController_old extends Controller
 
     public function addCoupon(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'code' => 'required|string|max:255|unique:coupons',
             'discount_type' => 'required|string|in:F,P',
             'discount' => 'required|integer',
@@ -1719,7 +1719,7 @@ class DashboardController_old extends Controller
 
     public function updateCoupon(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'couponID' => 'required|integer',
             'code' => 'required|string|max:255',
             'discount_type' => 'required|string|in:F,P',
@@ -1758,7 +1758,7 @@ class DashboardController_old extends Controller
 
     public function removeCoupon(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'couponID' => 'required|integer'
         ]);
 
