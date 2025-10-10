@@ -74,6 +74,7 @@ class AdminController extends Controller
         }
 
         //Change Password
+        /**@var Admin */
         $user = Auth::guard('admin')->user();
         $user->password = bcrypt($request->password);
         $user->save();
