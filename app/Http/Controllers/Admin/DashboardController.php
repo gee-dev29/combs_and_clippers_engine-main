@@ -977,7 +977,7 @@ class DashboardController extends Controller
     public function blogCategoryAdd(Request $request)
     {
 
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required|unique:blog_categories,name|max:20|string'
         ]);
         $blogCategory = new BlogCategory;
@@ -999,7 +999,7 @@ class DashboardController extends Controller
     public function blogCategoryEdit(Request $request, $id)
     {
 
-        $this->validate($request, [
+        $request->validate([
             'name' => ['required', 'max:20', 'string', 'unique:blog_categories,name,except,name']
         ]);
         $blogCategory = BlogCategory::find($id);
@@ -1041,7 +1041,7 @@ class DashboardController extends Controller
     public function blogAdd(Request $request)
     {
 
-        $this->validate($request, [
+        $request->validate([
             'title' => 'required|string|max:255|unique:blogs',
             'excerpt' => 'required|string',
             'full_description' => 'required|string',
@@ -1096,7 +1096,7 @@ class DashboardController extends Controller
     public function blogEdit(Request $request, $id)
     {
 
-        $this->validate($request, [
+        $request->validate([
             'title' => 'required|string|max:255|unique:blogs,title,' . $id,
             'excerpt' => 'required|string',
             'full_description' => 'required|string',
