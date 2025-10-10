@@ -29,6 +29,7 @@ class ProductController extends Controller
 {
     public function getPackageBoxes(Request $request)
     {
+        /** @var \Illuminate\Database\Eloquent\Collection */
         $boxes = PackageBox::all();
         return response()->json(compact('boxes'), 200);
     }
@@ -94,6 +95,7 @@ class ProductController extends Controller
     {
         try {
             $merchantID = $this->getAuthID($request);
+            /** @var Product|null */
             $product = Product::where(['id' => $id, 'merchant_id' => $merchantID])->first();
             if (!is_null($product)) {
                 $product = new ProductResource($product);
@@ -109,6 +111,7 @@ class ProductController extends Controller
     public function getMerchantProduct(Request $request, $code)
     {
         try {
+            /** @var Product|null */
             $product = Product::where('product_code', $code)->orWhere('product_slug', $code)->orWhere('id', $code)->first();
             if (!is_null($product)) {
                 $merchant = $product->merchant;
@@ -177,6 +180,7 @@ class ProductController extends Controller
                 $merchant = User::find($merchantID);
                 if (!is_null($merchant)) {
                     $productSlug = generateSlug($request['productname']);
+                    /** @var Product */
                     $product =  Product::create([
                         'merchant_email' => $merchant->email,
                         'productname' => $request['productname'],
