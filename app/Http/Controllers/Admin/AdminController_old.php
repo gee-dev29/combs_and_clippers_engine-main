@@ -22,7 +22,7 @@ class AdminController extends Controller
 
     public function saveAdmin(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required|string',
             'email' => 'required|email|unique:admins'
         ]);
@@ -57,7 +57,7 @@ class AdminController extends Controller
 
     public function passwordUpdate(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'current_password' => 'required|string',
             'password' => 'required|min:4|confirmed|string',
             'password_confirmation' => 'required|string|min:4',
