@@ -33,7 +33,6 @@ use App\Http\Resources\AddressResource;
 use App\Http\Resources\DisputeResource;
 use Bmatovu\MtnMomo\Products\Collection;
 use Illuminate\Support\Facades\Validator;
-use Propaganistas\LaravelPhone\Rules\Phone;
 
 class OrderController extends Controller
 {
@@ -48,11 +47,13 @@ class OrderController extends Controller
       return $this->validationError($validator);
     }
     try {
+      /** @var User|null */
       $user = $this->getAuthUser($request);
       if (!$user) {
         return $this->errorResponse('Merchant not found', 404);
       }
 
+      /** @var Order|null */
       $tranx = Order::find($request->input('orderID'));
       if (!is_null($tranx)) {
         if ($request->filled('issues')) {
@@ -124,6 +125,7 @@ class OrderController extends Controller
       return $this->validationError($validator);
     }
     try {
+      /** @var User|null */
       $buyer = User::find($this->getAuthID($request));
 
       if (!is_null($buyer)) {
@@ -134,7 +136,8 @@ class OrderController extends Controller
         }
 
         if ($request['type'] == 'All') {
-          $orders = Order::where('buyer_id', $buyer_id)->latest()->paginate($this->perPage);
+          /** @var \Illuminate\Database\Eloquent\Collection */
+      $orders = Order::where('buyer_id', $buyer_id)->latest()->paginate($this->perPage);
         } else {
           $type = $request->type;
           $statusArr = cc('transaction.statusArray');
@@ -169,6 +172,7 @@ class OrderController extends Controller
     }
     $merchantID = $this->getAuthID($request);
     try {
+      /** @var User|null */
       $merchant = User::find($merchantID);
 
       if (!is_null($merchant) && $merchant->account_type == 'Merchant') {
@@ -180,7 +184,8 @@ class OrderController extends Controller
 
         $statusArr = cc('transaction.statusArray');
         if ($request['type'] == 'All') {
-          $orders = Order::where('merchant_id', $merchant_id)->latest()->paginate($this->perPage);
+          /** @var \Illuminate\Database\Eloquent\Collection */
+      $orders = Order::where('merchant_id', $merchant_id)->latest()->paginate($this->perPage);
         } else {
           $type = $request->type;
           if (isset($statusArr[$type])) {
@@ -205,7 +210,8 @@ class OrderController extends Controller
 
   public function getOrder($id)
   {
-    $order = Order::find($id);
+      /** @var Order|null */
+      $order = Order::find($id);
     return response()->json(compact('order'), 201);
   }
 
@@ -568,6 +574,7 @@ class OrderController extends Controller
       return $this->validationError($validator);
     }
     try {
+      /** @var User|null */
       $user = $this->getAuthUser($request);
       if (!is_null($user)) {
         $cart = Cart::find($request->input('cart_id'));
@@ -732,7 +739,7 @@ class OrderController extends Controller
     $validator = Validator::make($request->all(), [
       'name' => 'required|string|max:255|regex:/^[a-zA-Z]+(?:\s[a-zA-Z]+)+$/',
       'email' => 'required|email',
-      'phone' => ['required', 'numeric', (new Phone)->country('GB')],
+      'phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]+$/'],
       'street' => 'required_if:delivery_type,Delivery|string',
       'city' => 'required_if:delivery_type,Delivery|string',
       'state' => 'required_if:delivery_type,Delivery|string',
@@ -749,6 +756,7 @@ class OrderController extends Controller
       $delivery_type = $request->delivery_type;
       //fetch user using email or create an account
       $name_arr = explode(" ", request('name'));
+      /** @var User|null */
       $user = User::firstOrCreate(
         ['email' =>  request('email')],
         [
@@ -776,6 +784,7 @@ class OrderController extends Controller
       }
 
       //process cart and cart items
+      /** @var array */
       $carts = $request->cart;
       foreach ($carts as $cart) {
         $product = Product::find($cart['productID']);
@@ -944,7 +953,7 @@ class OrderController extends Controller
     $validator = Validator::make($request->all(), [
       'name' => 'required|string|max:255|regex:/^[a-zA-Z]+(?:\s[a-zA-Z]+)+$/',
       'email' => 'required|email',
-      'phone' => ['required', 'numeric', (new Phone)->country('GB')],
+      'phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]+$/'],
       'street' => 'required|string',
       'city' => 'required|string',
       'state' => 'nullable|string',
@@ -1188,6 +1197,7 @@ class OrderController extends Controller
     }
 
     try {
+      /** @var User|null */
       $user = $this->getAuthUser($request);
       if (is_null($user)) {
         return $this->errorResponse('User not found', 404);
