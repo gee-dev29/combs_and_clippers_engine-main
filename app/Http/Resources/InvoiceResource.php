@@ -16,7 +16,7 @@ class InvoiceResource extends JsonResource
     public function toArray($request)
     {
         $statusArr = cc('transaction.status');
-       
+      
         return [
           'invoiceID' => $this->id,
           'merchant_id' => $this->merchant_id,
