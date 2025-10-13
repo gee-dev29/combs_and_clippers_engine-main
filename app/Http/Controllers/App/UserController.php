@@ -35,146 +35,138 @@ use App\Http\Resources\WaitlistResource;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Propaganistas\LaravelPhone\Rules\Phone;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Log as Logger;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
-
-
 class UserController extends Controller
 {
-public function register(Request $request)
-{
+  public function register(Request $request)
+  {
     $validator = Validator::make($request->all(), [
-        'name' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z_-]+ [a-zA-Z_-]+(?: [a-zA-Z_-]+)*$/'],
-        'accountType' => ['required', 'string', 'in:Client,Stylist,Owner'],
-        'referral_code' => ['nullable', 'string', 'max:25'],
-        'email' => ['required', 'email', 'max:100', 'unique:users'],
-        'password' => ['required', 'string', 'min:8'],
-        'phone' => ['nullable', 'string', 'unique:users']
+      'name' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z_-]+ [a-zA-Z_-]+(?: [a-zA-Z_-]+)*$/'],
+      'accountType' => ['required', 'string', 'in:Client,Stylist,Owner'],
+      'referral_code' => ['nullable', 'string', 'max:25'],
+      'email' => ['required', 'email', 'max:100', 'unique:users'],
+      'password' => ['required', 'string', 'min:8'],
+      'phone' => ['nullable', 'string', 'unique:users']
     ]);
 
     if ($validator->fails()) {
-        return $this->validationError($validator);
+      return $this->validationError($validator);
     }
-    
+
     try {
-        $name = $request->input('name');
-        $name_arr = explode(" ", $name);
-        
-        $userData = [
-            'name' => $name,
-            'firstName' => $name_arr[0],
-            'lastName' => isset($name_arr[1]) ? $name_arr[1] : $name_arr[0],
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-            'referral_code' => generateReferralCode(),
-            'account_type' => $request->input('accountType'),
-            'specialization' => $request->input('specialization'),
-            'accountstatus' => 1,
-            'token' => Str::random(64)
-        ];
+      $name = $request->input('name');
+      $name_arr = explode(" ", $name);
 
-        if ($request->filled('phone')) {
-            $userData['phone'] = $request->input('phone');
-            $userData['phone_verified'] = false;
+      $userData = [
+        'name' => $name,
+        'firstName' => $name_arr[0],
+        'lastName' => isset($name_arr[1]) ? $name_arr[1] : $name_arr[0],
+        'email' => $request->input('email'),
+        'password' => Hash::make($request->input('password')),
+        'referral_code' => generateReferralCode(),
+        'account_type' => $request->input('accountType'),
+        'specialization' => $request->input('specialization'),
+        'accountstatus' => 1,
+        'token' => Str::random(64)
+      ];
+
+      if ($request->filled('phone')) {
+        $userData['phone'] = $request->input('phone');
+        $userData['phone_verified'] = false;
+      }
+
+      /** @var User */
+      $user = User::create($userData);
+
+      if ($request->accountType != 'Client') {
+        $user->update(['merchant_code' => generateShortUniqueID($user->email, $user->id)]);
+      }
+
+      if ($request->filled('referral_code')) {
+        /** @var User|null */
+      $referrer = User::where('referral_code', $request->input('referral_code'))->first();
+        if (!is_null($referrer)) {
+          Referral::create([
+            'referrer_id' => $referrer->id,
+            'customer_id' => $user->id,
+            'customer_type' => $user->account_type
+          ]);
         }
+      }
 
-        $user = User::create($userData);
+      $this->Mailer->sendVerificationEmail($user);
+      $this->Mailer->sendAccountCreatedEmail($user);
 
-        if ($request->accountType != 'Client') {
-            $user->update(['merchant_code' => generateShortUniqueID($user->email, $user->id)]);
-        }
+      if ($request->filled('phone')) {
+        try {
+          $otp = rand(1000, 9999);
 
-        if ($request->filled('referral_code')) {
-            $referrer = User::where('referral_code', $request->input('referral_code'))->first();
-            if (!is_null($referrer)) {
-                Referral::create([
-                    'referrer_id' => $referrer->id,
-                    'customer_id' => $user->id,
-                    'customer_type' => $user->account_type
-                ]);
-            }
-        }
+          $mailer = new Mailer();
+          $mailer->sendPhoneVerificationOTP($user, $otp);
 
-        $this->Mailer->sendVerificationEmail($user);
-        $this->Mailer->sendAccountCreatedEmail($user);
+          $beforeState = DB::selectOne('SELECT sms_otp, updated_at FROM users WHERE id = ?', [$user->id]);
 
-   if ($request->filled('phone')) {
-    try {
-        $otp = rand(1000, 9999);
-        
-      
-        $mailer = new Mailer();
-        $mailer->sendPhoneVerificationOTP($user, $otp);
+          $user->sms_otp = $otp;
 
-        $beforeState = DB::selectOne('SELECT sms_otp, updated_at FROM users WHERE id = ?', [$user->id]);
+          $saveResult = $user->save();
 
-        $user->sms_otp = $otp;
 
-        $saveResult = $user->save();
-        
+          $afterModelSave = DB::selectOne('SELECT sms_otp, updated_at FROM users WHERE id = ?', [$user->id]);
 
-        $afterModelSave = DB::selectOne('SELECT sms_otp, updated_at FROM users WHERE id = ?', [$user->id]);
-
-        if (is_null($afterModelSave->sms_otp) || $afterModelSave->sms_otp != $otp) {
+          if (is_null($afterModelSave->sms_otp) || $afterModelSave->sms_otp != $otp) {
             \Log::warning('6. Model Save Failed - Trying Direct SQL');
-            
+
             try {
-                $sqlResult = DB::statement('UPDATE users SET sms_otp = ?, updated_at = NOW() WHERE id = ?', [$otp, $user->id]);
-                
+              $sqlResult = DB::statement('UPDATE users SET sms_otp = ?, updated_at = NOW() WHERE id = ?', [$otp, $user->id]);
 
-                $afterSqlUpdate = DB::selectOne('SELECT sms_otp, updated_at FROM users WHERE id = ?', [$user->id]);
-
-                
+              $afterSqlUpdate = DB::selectOne('SELECT sms_otp, updated_at FROM users WHERE id = ?', [$user->id]);
             } catch (Exception $sqlException) {
-                \Log::error('9. SQL Update Failed', [
-                    'user_id' => $user->id,
-                    'sql_error' => $sqlException->getMessage(),
-                ]);
+              \Log::error('9. SQL Update Failed', [
+                'user_id' => $user->id,
+                'sql_error' => $sqlException->getMessage(),
+              ]);
             }
-        }
-        
+          }
 
-        
-        $otpSent = true;
-        
-    } catch (Exception $e) {
-        \Log::error('OTP Process Exception', [
+          $otpSent = true;
+        } catch (Exception $e) {
+          \Log::error('OTP Process Exception', [
             'user_id' => $user->id ?? 'unknown',
             'error' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
-        ]);
-        $otpSent = false;
-    }
-} else {
-    $otpSent = false;
-}
-
-        $token = $this->respondWithToken(JWTAuth::fromUser($user));
-        $userInfo = new UserResource($user);
-        
-        $response = compact('userInfo', 'token');
-        if ($request->filled('phone')) {
-            $response['otp_sent'] = $otpSent;
-            $response['message'] = $otpSent 
-                ? 'Registration successful. OTP sent to your email address.' 
-                : 'Registration successful. OTP could not be sent, but you can request it later.';
+          ]);
+          $otpSent = false;
         }
-        
-        return response()->json($response, 201);
-        
+      } else {
+        $otpSent = false;
+      }
+
+      $token = $this->respondWithToken(JWTAuth::fromUser($user));
+      $userInfo = new UserResource($user);
+
+      $response = compact('userInfo', 'token');
+      if ($request->filled('phone')) {
+        $response['otp_sent'] = $otpSent;
+        $response['message'] = $otpSent
+          ? 'Registration successful. OTP sent to your email address.'
+          : 'Registration successful. OTP could not be sent, but you can request it later.';
+      }
+
+      return response()->json($response, 201);
     } catch (Exception $e) {
-        return response()->json([
-            "ResponseStatus" => "Unsuccessful", 
-            "ResponseCode" => 500, 
-            'Detail' => $e->getMessage(), 
-            'message' => 'Something went wrong', 
-            "ResponseMessage" => 'Something went wrong'
-        ], 500);
+      return response()->json([
+        "ResponseStatus" => "Unsuccessful",
+        "ResponseCode" => 500,
+        'Detail' => $e->getMessage(),
+        'message' => 'Something went wrong',
+        "ResponseMessage" => 'Something went wrong'
+      ], 500);
     }
-}
+  }
 
   // public function addPhone(Request $request)
   // {
@@ -211,119 +203,119 @@ public function register(Request $request)
   //   }
   // }
 
-public function resendPhoneOtp(Request $request)
-{
+  public function resendPhoneOtp(Request $request)
+  {
     try {
-        $userID = $this->getAuthID($request);
-        $user = User::find($userID);
+      $userID = $this->getAuthID($request);
+      /** @var User|null */
+      $user = User::find($userID);
 
-        if (is_null($user)) {
-            return $this->errorResponse('User not found!', 404);
-        }
+      if (is_null($user)) {
+        return $this->errorResponse('User not found!', 404);
+      }
 
-        if (empty($user->phone)) {
-            return $this->errorResponse('Phone number not found. Please add your phone number first.', 400);
-        }
+      if (empty($user->phone)) {
+        return $this->errorResponse('Phone number not found. Please add your phone number first.', 400);
+      }
 
-        $otp = rand(1000, 9999);
-        
-       
-        $mailer = new Mailer();
-        $mailer->sendPhoneVerificationOTP($user, $otp);
-        
-        
-        $user->sms_otp = $otp;
-        $user->save();
-        
-        \Log::info('Email OTP resent and saved', [
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'otp_saved' => $user->sms_otp
-        ]);
-        
-        return $this->successResponse("A new OTP has been sent to your email address", 200);
-        
+      $otp = rand(1000, 9999);
+
+
+      $mailer = new Mailer();
+      $mailer->sendPhoneVerificationOTP($user, $otp);
+
+
+      $user->sms_otp = $otp;
+      $user->save();
+
+      \Log::info('Email OTP resent and saved', [
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'phone' => $user->phone,
+        'otp_saved' => $user->sms_otp
+      ]);
+
+      return $this->successResponse("A new OTP has been sent to your email address", 200);
     } catch (Exception $e) {
-        \Log::error('Resend OTP failed: ' . $e->getMessage(), [
-            'user_id' => $userID ?? null,
-            'error' => $e->getMessage()
-        ]);
-        
-        return response()->json([
-            "ResponseStatus" => "Unsuccessful",
-            "ResponseCode" => 500,
-            'Detail' => $e->getMessage(),
-            'message' => 'Something went wrong',
-            "ResponseMessage" => 'Something went wrong'
-        ], 500);
+      \Log::error('Resend OTP failed: ' . $e->getMessage(), [
+        'user_id' => $userID ?? null,
+        'error' => $e->getMessage()
+      ]);
+
+      return response()->json([
+        "ResponseStatus" => "Unsuccessful",
+        "ResponseCode" => 500,
+        'Detail' => $e->getMessage(),
+        'message' => 'Something went wrong',
+        "ResponseMessage" => 'Something went wrong'
+      ], 500);
     }
-}
+  }
 
 
-public function validateOTP(Request $request)
-{
+  public function validateOTP(Request $request)
+  {
     $validator = Validator::make($request->all(), [
-        'otp' => 'required|integer',
+      'otp' => 'required|integer',
     ]);
 
     if ($validator->fails()) {
-        return $this->validationError($validator);
+      return $this->validationError($validator);
     }
-    
+
     try {
-        $userID = $this->getAuthID($request);
-        $user = User::find($userID);
-        
-        if (is_null($user)) {
-            return $this->errorResponse('User not found!', 404);
-        }
-        
-        $savedOTP = $user->sms_otp;
-        $inputOTP = $request['otp'];
-        
-        // \Log::info('OTP Validation Debug', [
+      $userID = $this->getAuthID($request);
+      /** @var User|null */
+      $user = User::find($userID);
+
+      if (is_null($user)) {
+        return $this->errorResponse('User not found!', 404);
+      }
+
+      $savedOTP = $user->sms_otp;
+      $inputOTP = $request['otp'];
+
+      // \Log::info('OTP Validation Debug', [
+      //     'user_id' => $userID,
+      //     'saved_otp' => $savedOTP,
+      //     'saved_otp_type' => gettype($savedOTP),
+      //     'input_otp' => $inputOTP,
+      //     'input_otp_type' => gettype($inputOTP),
+      //     'strict_comparison' => $savedOTP === $inputOTP,
+      //     'loose_comparison' => $savedOTP == $inputOTP,
+      //     'phone_verified_before' => $user->phone_verified,
+      // ]);
+
+      if ($savedOTP == $inputOTP) {
+        $user->sms_otp = NULL;
+        $user->phone_verified = true;
+        $user->save();
+
+        // \Log::info('OTP Validated Successfully', [
         //     'user_id' => $userID,
-        //     'saved_otp' => $savedOTP,
-        //     'saved_otp_type' => gettype($savedOTP),
-        //     'input_otp' => $inputOTP,
-        //     'input_otp_type' => gettype($inputOTP),
-        //     'strict_comparison' => $savedOTP === $inputOTP,
-        //     'loose_comparison' => $savedOTP == $inputOTP,
-        //     'phone_verified_before' => $user->phone_verified,
+        //     'phone_verified_after' => $user->phone_verified,
         // ]);
-        
-        if ($savedOTP == $inputOTP) { 
-            $user->sms_otp = NULL;
-            $user->phone_verified = true; 
-            $user->save();
-            
-            // \Log::info('OTP Validated Successfully', [
-            //     'user_id' => $userID,
-            //     'phone_verified_after' => $user->phone_verified,
-            // ]);
-            
-            return $this->successResponse("OTP code validated successfully", 200);
-        } else {
-            return $this->errorResponse('Invalid OTP Code supplied!, Please try again', 401);
-        }
-        
+
+        return $this->successResponse("OTP code validated successfully", 200);
+      } else {
+        return $this->errorResponse('Invalid OTP Code supplied!, Please try again', 401);
+      }
     } catch (Exception $e) {
-        \Log::error('OTP Validation Error', [
-            'error' => $e->getMessage(),
-            'user_id' => $userID ?? null,
-            'request_otp' => $request['otp'] ?? null,
-        ]);
-        
-        return response()->json([
-            "ResponseStatus" => "Unsuccessful", 
-            "ResponseCode" => 500, 
-            'Detail' => $e->getMessage(), 
-            'message' => 'Something went wrong', 
-            "ResponseMessage" => 'Something went wrong'
-        ], 500);
+      \Log::error('OTP Validation Error', [
+        'error' => $e->getMessage(),
+        'user_id' => $userID ?? null,
+        'request_otp' => $request['otp'] ?? null,
+      ]);
+
+      return response()->json([
+        "ResponseStatus" => "Unsuccessful",
+        "ResponseCode" => 500,
+        'Detail' => $e->getMessage(),
+        'message' => 'Something went wrong',
+        "ResponseMessage" => 'Something went wrong'
+      ], 500);
     }
-}
+  }
 
 
   public function createStore(Request $request)
@@ -356,11 +348,14 @@ public function validateOTP(Request $request)
 
     $merchantID = $this->getAuthID($request);
     try {
+      /** @var User|null */
+      /** @var User|null */
       $merchant = User::find($merchantID);
       if (is_null($merchant)) {
         return $this->errorResponse('User not found!', 404);
       }
 
+      /** @var Store */
       $store = Store::updateOrCreate(
         ['merchant_id' => $merchant->id],
         [
@@ -476,6 +471,7 @@ public function validateOTP(Request $request)
       return $this->validationError($validator);
     }
     try {
+      /** @var User|null */
       $user = User::where('email', $request->input('email'))->first();
 
       if (is_null($user)) {
@@ -497,6 +493,7 @@ public function validateOTP(Request $request)
         return $this->errorResponse('Could not create token', 500);
       }
 
+      /** @var User|null */
       $customer = User::where('email', $request->input('email'))->first();
       if (is_null($customer->merchant_code) && $customer->account_type != "Client") {
         $customer->update(['merchant_code' => generateShortUniqueID($customer->email, $customer->id)]);
@@ -533,6 +530,7 @@ public function validateOTP(Request $request)
         return $this->errorResponse('Invalid token supplied', 401);
       }
       //find the user with the email
+      /** @var User|null */
       $user = User::where('email', $tokenData->email)->first();
       // Respond if no user is found
       if (!$user) {
@@ -568,6 +566,7 @@ public function validateOTP(Request $request)
       return $this->validationError($validator);
     }
     try {
+      /** @var User|null */
       $user = User::where('email', $request['email'])->first();
       if (!is_null($user)) {
         $token = Str::random(30);
@@ -597,6 +596,7 @@ public function validateOTP(Request $request)
       return $this->validationError($validator);
     }
     try {
+      /** @var User|null */
       $user = User::where('phone', $request['phone'])->first();
       if (!is_null($user)) {
         $otp = rand(100000, 999999);
@@ -923,7 +923,7 @@ public function validateOTP(Request $request)
       $socialProvider = SocialProvider::where('provider_id', $userProviderID)->first();
       if (!$socialProvider) {
 
-        //$name_arr = explode (" ", $name); 
+        /** @var User|null */
         $user = User::where('email', $email)->first();
         if (is_null($user)) {
           //create a new user and provider
@@ -1001,10 +1001,12 @@ public function validateOTP(Request $request)
   {
     $merchantID = $this->getAuthID($request);
     try {
+      /** @var User|null */
       $merchant = User::find($merchantID);
       if (!is_null($merchant) && $merchant->account_type == 'Merchant') {
         $merchant_id = $merchant->id;
-        $activities = Activity::where('merchant_id', $merchant_id)->latest('id')->paginate($this->perPage);
+        /** @var \Illuminate\Database\Eloquent\Collection */
+      $activities = Activity::where('merchant_id', $merchant_id)->latest('id')->paginate($this->perPage);
         $activities = $this->addMeta(ActivityResource::collection($activities));
 
         return response()->json(compact('activities'), 200);
@@ -1371,6 +1373,7 @@ public function validateOTP(Request $request)
       $storeId = $store->id ?? null;
 
       // Retrieve images for the store or for the user if no store exists
+      /** @var \Illuminate\Database\Eloquent\Collection */
       $images = StoreWorkdoneImage::where(function ($query) use ($storeId, $merchantId) {
         if ($storeId) {
           $query->where('stores_id', $storeId);
@@ -1523,7 +1526,7 @@ public function validateOTP(Request $request)
       // Enhanced error handling with specific rejection reasons
       $errors = $validate->errors();
       $detailedErrors = [];
-      
+
       if ($errors->has('profile_pic')) {
         $profilePicErrors = $errors->get('profile_pic');
         foreach ($profilePicErrors as $error) {
@@ -1538,18 +1541,18 @@ public function validateOTP(Request $request)
           }
         }
       }
-      
+
       if ($errors->has('phone')) {
         $detailedErrors[] = 'Phone number must contain only numeric characters.';
       }
-      
+
       if ($errors->has('bio')) {
         $detailedErrors[] = 'Bio must be a valid text string.';
       }
-      
+
       return response()->json([
         "ResponseCode" => 422,
-        "ResponseStatus" => "Unsuccessful", 
+        "ResponseStatus" => "Unsuccessful",
         "ResponseMessage" => "Request rejected: " . implode(' ', $detailedErrors),
         'Detail' => [
           'validation_errors' => $errors->all(),
@@ -1836,6 +1839,7 @@ public function validateOTP(Request $request)
     }
 
     try {
+      /** @var User|null */
       $user = User::find($this->getAuthID($request));
       if (is_null($user)) {
         return $this->errorResponse('User not found', 404);
@@ -1877,11 +1881,13 @@ public function validateOTP(Request $request)
   public function getStyles(Request $request)
   {
     try {
+      /** @var User|null */
       $user = User::find($this->getAuthID($request));
       if (is_null($user)) {
         return $this->errorResponse('User not found', 404);
       }
 
+      /** @var \Illuminate\Database\Eloquent\Collection */
       $images = UserStyle::where('user_id', $user->id)->get();
 
       if ($images->isEmpty()) {
@@ -1926,6 +1932,7 @@ public function validateOTP(Request $request)
     }
 
     try {
+      /** @var User|null */
       $user = User::find($this->getAuthID($request));
       if (is_null($user)) {
         return $this->errorResponse('User not found', 404);
@@ -1996,6 +2003,7 @@ public function validateOTP(Request $request)
 
     $merchantID = $this->getAuthID($request);
     try {
+      /** @var User|null */
       $merchant = User::find($merchantID);
       if (is_null($merchant)) {
         return $this->errorResponse('User not found!', 404);
@@ -2335,7 +2343,4 @@ public function validateOTP(Request $request)
       ], 500);
     }
   }
-
-
-
 }
