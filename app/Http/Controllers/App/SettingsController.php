@@ -24,7 +24,6 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\LoginResource;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Validator;
-use Propaganistas\LaravelPhone\Rules\Phone;
 use App\Http\Resources\StorePreviewResource;
 use App\Http\Resources\DeliverySettingResource;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -43,6 +42,7 @@ class SettingsController extends Controller
             return $this->validationError($validator);
         }
         $user_id = $this->getAuthID($request);
+        /** @var User|null */
         $user = User::find($user_id);
         if (!is_null($user)) {
             $name = $request->input('name');
@@ -82,7 +82,7 @@ class SettingsController extends Controller
                 'store_icon' => 'nullable|mimes:jpeg,jpg,png,gif,bmp|max:5120',
                 'store_banner' => 'nullable|mimes:jpeg,jpg,png,gif,bmp|max:5120',
                 'store_description' => 'nullable|string',
-                'store_phone' => ['nullable', (new Phone)->country('NG'), Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
+                'store_phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]+$/', Rule::unique(User::class)->ignore($this->getAuthUser($request)->id)],
                 'refund_allowed' => 'nullable|integer',
                 'replacement_allowed' => 'nullable|integer',
                 'store_state' => 'nullable|string|max:255',
@@ -97,11 +97,13 @@ class SettingsController extends Controller
         }
 
         $merchantID = $this->getAuthID($request);
+        /** @var User|null */
         $merchant = User::find($merchantID);
         if (is_null($merchant)) {
             return $this->errorResponse('Merchant not found', 404);
         }
         try {
+            /** @var Store|null */
             $store = Store::where(['id' => $request->store_id, 'merchant_id' => $merchantID])->first();
             if (!is_null($store)) {
                 $store->update([
