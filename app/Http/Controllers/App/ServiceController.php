@@ -3153,6 +3153,7 @@ class ServiceController extends Controller
 
     public function getRecentlyUsedProviders(Request $request)
     {
+        /** @var User|null */
         $user = User::find($this->getAuthID($request));
         if (is_null($user)) {
             return $this->errorResponse('User not found', 404);
@@ -3180,6 +3181,7 @@ class ServiceController extends Controller
     {
         try {
             // Fetch the service provider with necessary counts and checks
+            /** @var User|null */
             $serviceProvider = User::where('merchant_code', $merchantCode)
                 ->withCount(['bookings', 'services'])
                 ->whereHas('services') // Ensure the user has services
@@ -3236,6 +3238,7 @@ class ServiceController extends Controller
 
     public function getSuggestedServiceProviders(Request $request)
     {
+        /** @var User|null */
         $user = User::find($this->getAuthID($request));
 
         if (is_null($user)) {
