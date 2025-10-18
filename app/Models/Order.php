@@ -3,9 +3,39 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class Order extends Model
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The "type" of the primary key ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
+    }
 {
     protected $fillable = ['tracking_code', 'issues', 'payurl', 'paymentRef', 'externalRef', 'delivery_type', 'payment_gateway', 'orderRef', 'maxdeliverydate', 'mindeliverydate', 'merchant_id', 'buyer_id', 'address_id', 'totalprice', 'shipping', 'status', 'total', 'currency', 'payment_status', 'disbursement_status', 'cart_id', 'confirmation_pin', 'confirmation_pin_expires_at', 'cancellation_reason', 'coupon_id'];
     protected $table = 'orders';
